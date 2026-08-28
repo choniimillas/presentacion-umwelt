@@ -207,9 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             unit.updateMatrixWorld(true);
             const isoUnit = makeIso(unit, 0x00aacc);
+            
+            if (isoUnit.userData && isoUnit.userData.powerCableGroup) {
+                isoUnit.userData.powerCableGroup.visible = false;
+            }
+            
             instScene.add(isoUnit);
 
-            const hoseExitLocal = new THREE.Vector3(-25, -47.5, 11.5);
+            const hoseExitLocal = new THREE.Vector3(-25, -30, 11.5);
             const hoseExitWorld = hoseExitLocal.clone().applyMatrix4(unit.matrixWorld);
             const slotEntryX = posX;
             const slotEntryZ = row === 0 ? 20 : -20;
@@ -398,7 +403,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Rebuild hose if unit moved
             if (simProgress > 0) {
                 obj.unit.updateMatrixWorld(true);
-                const hoseExitLocal = new THREE.Vector3(-25, -47.5, 11.5);
+                // Hide the stiff local tail so the flexible cable looks continuous
+                if (obj.unit.userData && obj.unit.userData.powerCableGroup) {
+                    obj.unit.userData.powerCableGroup.visible = false;
+                }
+
+                obj.unit.updateMatrixWorld(true);
+                // Start from inside the hole so it looks seamlessly attached
+                const hoseExitLocal = new THREE.Vector3(-25, -30, 11.5);
                 const hoseExitWorld = hoseExitLocal.clone().applyMatrix4(obj.unit.matrixWorld);
                 
                 const slotEntryX = obj.posX;

@@ -109,7 +109,7 @@ window.UmweltUnitBuilder = {
         mainAssemblyGroup.add(powerCableGroup);
         
         mainAssemblyGroup.userData = {
-            varillasGroup, frontCoverGroup, backCoverGroup, frontScrewGroup, backScrewGroup
+            varillasGroup, frontCoverGroup, backCoverGroup, frontScrewGroup, backScrewGroup, powerCableGroup
         };
 
         const buildCovers = () => {
@@ -447,7 +447,49 @@ window.UmweltUnitBuilder = {
                 backScrewGroup.add(bNut);
             });
 
-            // PVC Hose
+            // Add physical perforations (isometric-friendly grid of tiny plus signs)
+            const perfPoints = [];
+            for(let c = 0; c < 24; c++) {
+                const x = -30.0 + c * 2.54;
+                for(let r = 1; r <= 32; r++) {
+                    const y = 26.0 - (26 - r) * 2.54;
+                    const z = 0.81; // slightly above the board face
+                    const s = 0.4;
+                    perfPoints.push(new THREE.Vector3(x-s, y, z), new THREE.Vector3(x+s, y, z));
+                    perfPoints.push(new THREE.Vector3(x, y-s, z), new THREE.Vector3(x, y+s, z));
+                }
+            }
+            const perfGridGeom = new THREE.BufferGeometry().setFromPoints(perfPoints);
+            const perfGridLines = new THREE.LineSegments(perfGridGeom, new THREE.LineBasicMaterial({ color: 0x94a3b8, opacity: 0.5, transparent: true }));
+            perfboardGroup.add(perfGridLines);
+
+            // Connecting Wires (ESP to Display)
+            const wireMatRed = new THREE.MeshStandardMaterial({ color: 0xef4444 });
+            const wireMatBlue = new THREE.MeshStandardMaterial({ color: 0x3b82f6 });
+            const wireMatGreen = new THREE.MeshStandardMaterial({ color: 0x10b981 });
+
+            const wirePath1 = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-22.38, -10.0, 9.0),
+                new THREE.Vector3(-25.0, 0.0, 12.0),
+                new THREE.Vector3(-27.46, 7.0, 9.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(wirePath1, 16, 0.6, 8, false), wireMatRed));
+            
+            const wirePath2 = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-22.38, -12.54, 9.0),
+                new THREE.Vector3(-22.0, 0.0, 11.5),
+                new THREE.Vector3(-27.46, 9.54, 9.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(wirePath2, 16, 0.6, 8, false), wireMatBlue));
+
+            // Connecting Wires (ESP to Sensor)
+            const wirePath3 = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(5.0, -18.45, 9.0),
+                new THREE.Vector3(0.0, -14.0, 12.0),
+                new THREE.Vector3(-4.60, -17.0, 9.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(wirePath3, 16, 0.6, 8, false), wireMatGreen));
+
             const hoseMat = new THREE.MeshPhysicalMaterial({
                 color: 0x88ccff, transparent: true, opacity: 0.65, roughness: 0.2, transmission: 0.8, thickness: 2.0, clearcoat: 1.0
             });
