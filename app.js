@@ -439,5 +439,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Exploded View Slider for Single Unit
+    const explodeSlider = document.getElementById('slider-explode');
+    if (explodeSlider) {
+        explodeSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (singleUnit.userData) {
+                const { frontCoverGroup, frontScrewGroup, backCoverGroup, backScrewGroup, varillasGroup } = singleUnit.userData;
+                if (frontCoverGroup) frontCoverGroup.position.z = 17.3 + val * 1.0;
+                if (frontScrewGroup) frontScrewGroup.position.z = val * 1.25;
+                if (backCoverGroup) backCoverGroup.position.z = -5.3 - val * 0.9;
+                if (backScrewGroup) backScrewGroup.position.z = -val * 1.1;
+                if (varillasGroup) varillasGroup.position.z = val * 0.35;
+            }
+        });
+    }
+
     animate();
 });

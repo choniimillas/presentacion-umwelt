@@ -109,7 +109,7 @@ window.UmweltUnitBuilder = {
         mainAssemblyGroup.add(powerCableGroup);
         
         mainAssemblyGroup.userData = {
-            varillasGroup, frontCoverGroup, backCoverGroup
+            varillasGroup, frontCoverGroup, backCoverGroup, frontScrewGroup, backScrewGroup
         };
 
         const buildCovers = () => {
