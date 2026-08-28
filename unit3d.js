@@ -463,33 +463,117 @@ window.UmweltUnitBuilder = {
             const perfGridLines = new THREE.LineSegments(perfGridGeom, new THREE.LineBasicMaterial({ color: 0x94a3b8, opacity: 0.5, transparent: true }));
             perfboardGroup.add(perfGridLines);
 
-            // Connecting Wires (ESP to Display)
-            const wireMatRed = new THREE.MeshStandardMaterial({ color: 0xef4444 });
-            const wireMatBlue = new THREE.MeshStandardMaterial({ color: 0x3b82f6 });
-            const wireMatGreen = new THREE.MeshStandardMaterial({ color: 0x10b981 });
+            // ---- Sistema de Distribución de Alimentación (Cable Bipolar 2x0.35 mm²) y Señales ----
+            const wireMatRed = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.5 }); // +5V / VCC
+            const wireMatBlack = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 }); // GND / Masa
+            const wireMatBlue = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.5 }); // SDA / Data
+            const wireMatYellow = new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.5 }); // SCL / Clock
+            const wireMatGreen = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.5 }); // Sensor Signal
+            const solderMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.15 }); // Estaño brillante
+            const shrinkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 }); // Termocontraíble
 
-            const wirePath1 = new THREE.CatmullRomCurve3([
-                new THREE.Vector3(-22.38, -10.0, 9.0),
-                new THREE.Vector3(-25.0, 0.0, 12.0),
-                new THREE.Vector3(-27.46, 7.0, 9.0)
-            ]);
-            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(wirePath1, 16, 0.6, 8, false), wireMatRed));
-            
-            const wirePath2 = new THREE.CatmullRomCurve3([
-                new THREE.Vector3(-22.38, -12.54, 9.0),
-                new THREE.Vector3(-22.0, 0.0, 11.5),
-                new THREE.Vector3(-27.46, 9.54, 9.0)
-            ]);
-            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(wirePath2, 16, 0.6, 8, false), wireMatBlue));
+            // Función auxiliar para agregar puntos de soldadura (gotas de estaño)
+            const addSolderJoint = (x, y, z, parent = frontElectronicsGroup) => {
+                const solder = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 8), solderMat);
+                solder.scale.set(1, 1, 0.6);
+                solder.position.set(x, y, z);
+                parent.add(solder);
+            };
 
-            // Connecting Wires (ESP to Sensor)
-            const wirePath3 = new THREE.CatmullRomCurve3([
-                new THREE.Vector3(5.0, -18.45, 9.0),
-                new THREE.Vector3(0.0, -14.0, 12.0),
-                new THREE.Vector3(-4.60, -17.0, 9.0)
-            ]);
-            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(wirePath3, 16, 0.6, 8, false), wireMatGreen));
+            // 1. Desenvainado y bifurcación del cable bipolar que ingresa por la manguera a la placa
+            // Cuello de termocontraíble en la salida de manguera (X=-25, Y=-28, Z=11.5)
+            const shrinkSleeve = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 4.0, 16), shrinkMat);
+            shrinkSleeve.position.set(-25.0, -28.5, 11.5);
+            frontElectronicsGroup.add(shrinkSleeve);
 
+            // Conductor Positivo (+5V Rojo) - Desde cuello de manguera hasta pin 5V / VIN del ESP32
+            const pwrPosPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-25.4, -27.0, 11.5),
+                new THREE.Vector3(-25.0, -28.5, 6.0),
+                new THREE.Vector3(-23.8, -28.0, 2.5),
+                new THREE.Vector3(-22.38, -27.5, 1.5)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(pwrPosPath, 16, 0.45, 8, false), wireMatRed));
+            addSolderJoint(-22.38, -27.5, 1.2);
+
+            // Conductor Negativo (GND Negro) - Desde cuello de manguera bajando al bus de tierra y pin GND ESP32
+            const pwrNegPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-24.6, -27.0, 11.5),
+                new THREE.Vector3(-23.0, -31.0, 5.5),
+                new THREE.Vector3(-14.0, -32.5, 2.2),
+                new THREE.Vector3(-4.60, -27.5, 1.5)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(pwrNegPath, 20, 0.45, 8, false), wireMatBlack));
+            addSolderJoint(-4.60, -27.5, 1.2);
+            addSolderJoint(-14.0, -32.5, 1.2); // Punto de unión masa central
+
+            // 2. Distribución de Alimentación hacia el Display OLED (VCC y GND)
+            const dispVccPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-22.38, -10.0, 5.0),
+                new THREE.Vector3(-26.0, 0.0, 6.5),
+                new THREE.Vector3(-27.46, 7.0, 5.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(dispVccPath, 16, 0.35, 8, false), wireMatRed));
+            addSolderJoint(-22.38, -10.0, 5.0);
+            addSolderJoint(-27.46, 7.0, 5.0);
+
+            const dispGndPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-22.38, -12.5, 5.0),
+                new THREE.Vector3(-25.0, 0.0, 6.0),
+                new THREE.Vector3(-27.46, 9.5, 5.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(dispGndPath, 16, 0.35, 8, false), wireMatBlack));
+            addSolderJoint(-22.38, -12.5, 5.0);
+            addSolderJoint(-27.46, 9.5, 5.0);
+
+            // 3. Líneas de Datos I2C hacia el Display (SDA y SCL)
+            const dispSdaPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-22.38, -15.0, 5.0),
+                new THREE.Vector3(-24.0, 2.0, 7.0),
+                new THREE.Vector3(-27.46, 12.0, 5.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(dispSdaPath, 16, 0.35, 8, false), wireMatBlue));
+            addSolderJoint(-22.38, -15.0, 5.0);
+            addSolderJoint(-27.46, 12.0, 5.0);
+
+            const dispSclPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-22.38, -17.5, 5.0),
+                new THREE.Vector3(-23.0, 4.0, 7.5),
+                new THREE.Vector3(-27.46, 14.5, 5.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(dispSclPath, 16, 0.35, 8, false), wireMatYellow));
+            addSolderJoint(-22.38, -17.5, 5.0);
+            addSolderJoint(-27.46, 14.5, 5.0);
+
+            // 4. Distribución de Alimentación y Señal hacia el Sensor
+            const sensVccPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-4.60, -12.0, 5.0),
+                new THREE.Vector3(2.0, -11.0, 6.0),
+                new THREE.Vector3(5.0, -18.45, 5.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(sensVccPath, 16, 0.35, 8, false), wireMatRed));
+            addSolderJoint(-4.60, -12.0, 5.0);
+            addSolderJoint(5.0, -18.45, 5.0);
+
+            const sensGndPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-4.60, -14.5, 5.0),
+                new THREE.Vector3(1.0, -14.0, 5.5),
+                new THREE.Vector3(7.5, -18.45, 5.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(sensGndPath, 16, 0.35, 8, false), wireMatBlack));
+            addSolderJoint(-4.60, -14.5, 5.0);
+            addSolderJoint(7.5, -18.45, 5.0);
+
+            const sensSigPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-4.60, -17.0, 5.0),
+                new THREE.Vector3(0.0, -16.0, 6.5),
+                new THREE.Vector3(10.0, -18.45, 5.0)
+            ]);
+            frontElectronicsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(sensSigPath, 16, 0.35, 8, false), wireMatGreen));
+            addSolderJoint(-4.60, -17.0, 5.0);
+            addSolderJoint(10.0, -18.45, 5.0);
+
+            // ---- Manguera de PVC y Cable Bipolar Interno (2x0.35 mm²) ----
             const hoseMat = new THREE.MeshPhysicalMaterial({
                 color: 0x88ccff, transparent: true, opacity: 0.65, roughness: 0.2, transmission: 0.8, thickness: 2.0, clearcoat: 1.0
             });
@@ -498,13 +582,16 @@ window.UmweltUnitBuilder = {
             hose.position.set(-25.0, -47.5, 11.5); 
             powerCableGroup.add(hose);
 
-            // Inner Power Wire
-            const powerWireMat = new THREE.MeshStandardMaterial({ color: 0x880000 });
-            const powerWire = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 30.0, 8), powerWireMat);
-            powerWire.position.set(-25.0, -45.0, 11.5);
-            powerCableGroup.add(powerWire);
+            // Par de conductores bipolares 2x0.35 mm² dentro de la manguera
+            const innerWireRed = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 35.0, 8), wireMatRed);
+            innerWireRed.position.set(-25.4, -45.0, 11.5);
+            powerCableGroup.add(innerWireRed);
+
+            const innerWireBlack = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 35.0, 8), wireMatBlack);
+            innerWireBlack.position.set(-24.6, -45.0, 11.5);
+            powerCableGroup.add(innerWireBlack);
             
-            // Steel Wire Loop
+            // Lazo de Acero de Seguridad (1mm) y Casquillo de Prensado (Crimp)
             const steelMat = new THREE.MeshStandardMaterial({ color: 0xd0d0d0, metalness: 0.9, roughness: 0.2 });
             const crimpGeom = new THREE.CylinderGeometry(2.0, 2.0, 5.0, 16);
             const crimp = new THREE.Mesh(crimpGeom, new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.8 }));
