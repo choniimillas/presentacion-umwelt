@@ -421,6 +421,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const routePath = new THREE.CatmullRomCurve3([p0, p1, p2, p3, p4, p5, p6]);
                 obj.routeMesh.geometry.dispose();
                 obj.routeMesh.geometry = new THREE.TubeGeometry(routePath, 32, 3.5, 8, false);
+                
+                // Actualizar línea de contorno para modo isométrico
+                obj.routeMesh.children.forEach(child => {
+                    if (child.isLineSegments) {
+                        child.geometry.dispose();
+                        child.geometry = new THREE.EdgesGeometry(obj.routeMesh.geometry);
+                    }
+                });
             }
         });
 
