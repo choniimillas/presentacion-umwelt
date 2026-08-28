@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossier Interactivo: UMWELT</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                UMWELT
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item active" data-target="tab-single">
+                    <span class="icon">⬡</span>
+                    <span class="text">El Dispositivo</span>
+                </li>
+                <li class="nav-item" data-target="tab-installation">
+                    <span class="icon">▤</span>
+                    <span class="text">Diorama de Sala</span>
+                </li>
+                <li class="nav-item" data-target="tab-plans">
+                    <span class="icon">▦</span>
+                    <span class="text">Planos Técnicos</span>
+                </li>
+                <li class="nav-item" data-target="tab-memo">
+                    <span class="icon">✎</span>
+                    <span class="text">Memoria Descriptiva</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content">
+            <!-- TAB 1: Single Unit 3D -->
+            <section id="tab-single" class="tab-content active">
+                <div class="canvas-container" id="canvas-single"></div>
+                <div class="overlay-hud">
+                    <h2>Visor Individual</h2>
+                    <p>Diseño de 5 capas alternadas ("Una y Una"). Pantalla TFT 2.0" y ESP32-C3 centrado. Ruteo de cableado por esquina inferior izquierda.</p>
+                </div>
+            </section>
+
+            <!-- TAB 2: Installation Diorama 3D -->
+            <section id="tab-installation" class="tab-content">
+                <div class="canvas-container" id="canvas-installation"></div>
+                <div class="overlay-hud">
+                    <h2>Diorama de Instalación</h2>
+                    <p>Simulación física de las 12 unidades distribuidas sobre mesa de exhibición. Exploración espacial estilo dibujo.</p>
+                    <button id="btn-sim-room" class="btn-action" style="margin-top: 15px; width: 100%; justify-content: center;">Habitar</button>
+                </div>
+            </section>
+
+            <!-- TAB 3: Planos PDF -->
+            <section id="tab-plans" class="tab-content">
+                <div class="pdf-container">
+                    <iframe src="planos_validacion.pdf" frameborder="0"></iframe>
+                </div>
+            </section>
+
+            <!-- TAB 4: Memoria Descriptiva -->
+            <section id="tab-memo" class="tab-content scrollable">
+                <article class="memo-article">
+                    <h1>Proyecto Umwelt</h1>
+                    <p class="lead">Instalación interactiva de 12 dispositivos sensoriales de monitoreo distribuido.</p>
+                    
+                    <div class="grid-2">
+                        <div class="card">
+                            <h3>Arquitectura Física</h3>
+                            <p>El gabinete ("bicho") está construido bajo el concepto "Una y Una". Utilizando acrílico cristal cortado por láser de 3mm, se apilan 5 capas alternadas: capas horizontales (Capa 1, 3, 5) cruzadas con varillas laterales (Capa 2 y 4). Esto genera una matriz hiper-rígida de 15 mm de despeje interior.</p>
+                        </div>
+                        <div class="card">
+                            <h3>Lógica Electrónica</h3>
+                            <p>Cada unidad es autónoma, gobernada por un ESP32-C3 Super Mini. Incluye una pantalla TFT 2.0" IPS (ST7789) conectada de forma apilada. A la derecha, un zócalo hembra permite intercambiar placas de sensores (Luz, Sonido, Proximidad) que asoman por la tapa frontal.</p>
+                        </div>
+                        <div class="card">
+                            <h3>Sistema de Seguridad y Alimentación</h3>
+                            <p>Un solo mazo entra por la esquina inferior izquierda del dispositivo. Se utiliza una manguera de PVC cristal (diámetro 7mm) que envuelve dos cables de tensión bipolares y un cable de acero tensor de 1mm, anclado mediante un lazo al tornillo pasante interno.</p>
+                        </div>
+                        <div class="card">
+                            <h3>Topología de Instalación</h3>
+                            <p>Las 12 unidades se posan sobre una mesa de exhibición. Sus mazos descienden a través de perforaciones pasantes hacia una caja central estanca inferior. Dicha caja aloja una fuente MeanWell industrial, regletas de conexión DIN, fusibles térmicos individuales por unidad y una llave de corte general.</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <!-- 3D Scripts -->
+    <script src="unit3d.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
